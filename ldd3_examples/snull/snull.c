@@ -443,7 +443,8 @@ static void snull_hw_tx(char *buf, int len, struct net_device *dev)
 		return;
 	}
 
-	if (0) { /* enable this conditional to look at the data */
+	//if (0) { /* enable this conditional to look at the data */
+	if (1) { /* enable this conditional to look at the data */
 		int i;
 		PDEBUG("len is %i\n" KERN_DEBUG "data:",len);
 		for (i=14 ; i<len; i++)
