@@ -1,0 +1,88 @@
+Reverse engineering realtek ethernet drivers step by step
+
+Step 1
+======
+
+Find out what’s your driver in your linux system. 
+
+sudo lspci -v
+
+
+
+arun@lenovo-pc:~$ 
+
+
+09:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 10)
+
+
+Get more info about driver 
+modinfo driver_name
+
+Step 2
+=====
+
+Make the build setup
+
+
+Install the kernel headers
+sudo apt-get install linux-headers-$(uname -r)
+
+uname -a
+Linux lenovo-pc 3.19.0-33-generic #38-Ubuntu XXXXX
+
+b.  Download the kernel source code.
+cd to linux-3.19/drivers/net/ethernet/realtek/
+
+C. sudo apt-get install linux-headers-$(uname -r)
+
+This should build the driver for realtek drivers.
+
+Step 3
+=====
+
+Experimenting the driver 
+
+
+
+Remove the existing driver
+sudo rmmod r8169
+
+     b.  Insert the the newly build driver 
+	sudo insmod r8169.ko 
+
+     c.  check the kernel message to see that the kernel driver has been inserted.
+
+dmesg -c
+
+[ 3522.019204] r8169 Gigabit Ethernet driver 2.3LK-NAPI loaded
+[ 3522.019212] r8169 0000:09:00.0: can't disable ASPM; OS doesn't have ASPM control
+[ 3522.026198] r8169 0000:09:00.0 eth0: RTL8168g/8111g at 0xffffc90011ba6000, f0:76:1c:b2:a4:18, XID 10900880 IRQ 30
+[ 3522.026202] r8169 0000:09:00.0 eth0: jumbo features [frames: 9200 bytes, tx checksumming: ko]
+[ 3522.047314] r8169 0000:09:00.0 eth0: link down
+
+ 
+d.  Fun
+grep -r "Gigabit Ethernet driver" *r8169.c:MODULE_DESCRIPTION("RealTek RTL-8169 Gigabit Ethernet driver");
+r8169.c:		printk(KERN_INFO "%s Gigabit Ethernet driver %s loaded\n",
+
+Edit the below lines 
+
+       //printk(KERN_INFO "%s Gigabit Ethernet driver %s loaded\n",
+        printk(KERN_INFO "%s this is a test :  Gigabit Ethernet driver %s loaded\n",
+
+
+Now remove and add the newly compiled ethernet driver
+sudo rmmod r8169.ko
+
+make -C /lib/modules/$(uname -r)/build M=`pwd` modules
+
+sudo insmod r8169.ko
+
+Check the kernel message again :
+
+[ 3840.201328] r8169 this is a test :  Gigabit Ethernet driver 2.3LK-NAPI loaded
+[ 3840.201355] r8169 0000:09:00.0: can't disable ASPM; OS doesn't have ASPM control
+[ 3840.209018] r8169 0000:09:00.0 eth0: RTL8168g/8111g at 0xffffc90011ba6000, f0:76:1c:b2:a4:18, XID 10900880 IRQ 30
+[ 3840.209031] r8169 0000:09:00.0 eth0: jumbo features [frames: 9200 bytes, tx checksumming: ko]
+[ 3840.233713] r8169 0000:09:00.0 eth0: link down
+
